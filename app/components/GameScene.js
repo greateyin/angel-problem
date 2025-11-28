@@ -23,12 +23,41 @@ function AngelPiece({ position, label }) {
         return p;
     }, []);
 
+    const wingGeometry = useMemo(() => {
+        const shape = new THREE.Shape();
+        shape.moveTo(0, 0);
+        shape.quadraticCurveTo(0.5, 0.5, 1, 1);
+        shape.quadraticCurveTo(1.2, 0.5, 1, 0);
+        shape.quadraticCurveTo(0.5, -0.2, 0, 0);
+
+        const extrudeSettings = {
+            steps: 1,
+            depth: 0.05,
+            bevelEnabled: true,
+            bevelThickness: 0.02,
+            bevelSize: 0.02,
+            bevelSegments: 2
+        };
+
+        return new THREE.ExtrudeGeometry(shape, extrudeSettings);
+    }, []);
+
     return (
         <group position={[position.x, 0, position.y]} ref={ref}>
             <mesh position={[0, 0.8, 0]} castShadow>
                 <latheGeometry args={[points, 32]} />
                 <meshStandardMaterial color="#fbbf24" metalness={0.6} roughness={0.2} />
             </mesh>
+
+            {/* Wings */}
+            <group position={[0, 1.2, -0.1]}>
+                <mesh geometry={wingGeometry} rotation={[0, -0.5, 0]} position={[0.1, 0, 0]}>
+                    <meshStandardMaterial color="#fef3c7" metalness={0.3} roughness={0.1} transparent opacity={0.9} />
+                </mesh>
+                <mesh geometry={wingGeometry} rotation={[0, 0.5, 0]} position={[-0.1, 0, 0]} scale={[-1, 1, 1]}>
+                    <meshStandardMaterial color="#fef3c7" metalness={0.3} roughness={0.1} transparent opacity={0.9} />
+                </mesh>
+            </group>
 
             {/* Halo */}
             <mesh position={[0, 1.8, 0]} rotation={[Math.PI / 2, 0, 0]}>

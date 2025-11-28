@@ -10,15 +10,22 @@ import {
 } from './gameLogic';
 import GameScene from './components/GameScene';
 
+const MODES = [
+  { id: 'human_vs_ai', label: 'Human vs AI' },
+  { id: 'ai_vs_human', label: 'AI vs Human' },
+  { id: 'ai_vs_ai', label: 'AI vs AI' },
+];
+
 export default function AngelProblemGame() {
   const [gameStarted, setGameStarted] = useState(false);
-  const [mode, setMode] = useState('human_vs_human');
-  const [K, setK] = useState(2);
+  const [mode, setMode] = useState('human_vs_ai');
+  const [K, setK] = useState(1);
   const [angelPos, setAngelPos] = useState({ x: 0, y: 0 });
   const [roadblocks, setRoadblocks] = useState(new Set());
   const [turn, setTurn] = useState('demon');
   const [message, setMessage] = useState('Select a mode. Demon places a block first.');
   const [isGameActive, setIsGameActive] = useState(true);
+  const [history, setHistory] = useState([]);
 
   const isDemonAI = mode === 'ai_vs_human' || mode === 'ai_vs_ai';
   const isAngelAI = mode === 'human_vs_ai' || mode === 'ai_vs_ai';
@@ -84,8 +91,9 @@ export default function AngelProblemGame() {
 
       setAngelPos({ x, y });
 
-      if (Math.max(Math.abs(x), Math.abs(y)) >= 25) {
-        endGame('The Angel has escaped the Demon\'s trap! Angel Wins!');
+      // Check for win condition
+      if (Math.max(Math.abs(x), Math.abs(y)) >= 50) {
+        endGame("The Angel has escaped the Demon's trap! Angel Wins!");
         return;
       }
 
@@ -132,7 +140,7 @@ export default function AngelProblemGame() {
   }, [angelPos, K, endGame, handleMoveAngel, handlePlaceRoadblock, isAngelAI, isDemonAI, isGameActive, possibleMoves, roadblocks, turn]);
 
   const handleReset = useCallback(() => {
-    setMode('human_vs_human');
+    setMode('human_vs_ai');
     setK(2);
     setAngelPos({ x: 0, y: 0 });
     setRoadblocks(new Set());
@@ -272,7 +280,7 @@ export default function AngelProblemGame() {
             <p><strong>The Rules:</strong></p>
             <ul style={{ listStyle: 'none', padding: 0 }}>
               <li>😈 <strong>Demon:</strong> Places one block per turn to obstruct the path.</li>
-              <li>😇 <strong>Angel:</strong> Jumps to any unblocked square within <strong>K</strong> steps. <strong>Escape by reaching distance 25!</strong></li>
+              <li>😇 <strong>Angel:</strong> Jumps to any unblocked square within <strong>K</strong> steps. <strong>Escape by reaching distance 50!</strong></li>
             </ul>
             <br />
             <p>Can the Angel survive indefinitely? If trapped, the game restarts.</p>
@@ -288,12 +296,29 @@ export default function AngelProblemGame() {
         </div>
       )}
 
+      {/* Win Overlay */}
+      {turn === 'game_over' && message.includes('Angel Wins') && (
+        <div style={styles.overlay}>
+          <h1 style={{ ...styles.storyTitle, fontSize: '4rem', maxWidth: '800px', lineHeight: '1.2' }}>
+            The Angel has escaped the Demon's trap! Angel Wins!
+          </h1>
+          <button
+            style={styles.startButton}
+            onClick={handleReset}
+            onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+            onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
+          >
+            Restart Game
+          </button>
+        </div>
+      )}
+
       {/* Game Controls */}
       <div style={styles.controls}>
         <h1 style={{ margin: '0 0 20px 0', fontSize: '1.8rem', color: '#fbbf24' }}>Angel Problem</h1>
 
         <div style={styles.buttonRow}>
-          {['human_vs_human', 'human_vs_ai', 'ai_vs_human', 'ai_vs_ai'].map((m) => (
+          {['human_vs_ai', 'ai_vs_human', 'ai_vs_ai'].map((m) => (
             <button
               key={m}
               onClick={() => setMode(m)}
@@ -355,9 +380,8 @@ export default function AngelProblemGame() {
           possibleMoves={possibleMoves}
           onCellClick={handleCellClick}
           angelLabel={
-            mode === 'human_vs_human' ? 'Angel (Player 1)' :
-              mode === 'human_vs_ai' ? 'Angel (YOU)' :
-                'Angel (AI)'
+            mode === 'human_vs_ai' ? 'Angel (YOU)' :
+              'Angel (AI)'
           }
         />
       </Canvas>
